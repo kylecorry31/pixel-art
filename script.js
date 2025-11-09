@@ -44,41 +44,50 @@ function fill(color) {
 
 function importPNG(file) {
     const reader = new FileReader();
-    reader.onload = function(e) {
+    reader.onload = function (e) {
         const img = new Image();
-        img.onload = function() {
+        img.onload = function () {
             const tempCanvas = document.createElement('canvas');
             const tempContext = tempCanvas.getContext('2d');
 
             if (img.width < maxSize && img.height < maxSize) {
                 width = img.width;
                 height = img.height;
-                document.getElementById('widthInput').value = width;
-                document.getElementById('heightInput').value = height;
+            } else {
+                const aspectRatio = img.width / img.height;
+                if (aspectRatio >= 1) {
+                    width = maxSize;
+                    height = Math.floor(maxSize / aspectRatio);
+                } else {
+                    height = maxSize;
+                    width = Math.floor(maxSize * aspectRatio);
+                }
             }
-            
+            document.getElementById('widthInput').value = width;
+            document.getElementById('heightInput').value = height;
+
             // Scale to fit
             const scale = Math.min(width / img.width, height / img.height);
             const scaledWidth = Math.floor(img.width * scale);
             const scaledHeight = Math.floor(img.height * scale);
-            
+
             tempCanvas.width = scaledWidth;
             tempCanvas.height = scaledHeight;
-            
+
             // Get the scaled image data
             tempContext.drawImage(img, 0, 0, scaledWidth, scaledHeight);
             const imageData = tempContext.getImageData(0, 0, scaledWidth, scaledHeight);
             const data = imageData.data;
             const offsetX = Math.floor((width - scaledWidth) / 2);
             const offsetY = Math.floor((height - scaledHeight) / 2);
-            
+
             // Update the grid
             clear();
             for (let y = 0; y < scaledHeight; y++) {
                 for (let x = 0; x < scaledWidth; x++) {
                     const gridX = x + offsetX;
                     const gridY = y + offsetY;
-                    
+
                     if (gridX >= 0 && gridX < width && gridY >= 0 && gridY < height) {
                         const index = (y * scaledWidth + x) * 4;
                         const r = data[index];
@@ -90,7 +99,7 @@ function importPNG(file) {
                     }
                 }
             }
-            
+
             save();
         };
         img.src = e.target.result;
